@@ -6,7 +6,7 @@ const { app, User } = require('../src/server');
 let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create({binary: { version: '7.0.5' }});
   const uri = mongoServer.getUri();
   await mongoose.connect(uri);
 });
