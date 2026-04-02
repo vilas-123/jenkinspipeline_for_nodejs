@@ -1,9 +1,8 @@
-
 pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER  = 'vilas12'    
+        DOCKERHUB_USER  = 'vilas12'
         IMAGE_NAME      = "${DOCKERHUB_USER}/nodejs-mongo-app"
         IMAGE_TAG       = "v${env.BUILD_NUMBER}"
     }
@@ -17,31 +16,25 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install & Test') {
+            agent {
+                docker {
+                    image 'node:18'
+                }
+            }
             steps {
                 echo '📦 Installing npm packages...'
                 sh 'npm install'
-            }
-        }
 
-        stage('Run Tests') {
-            steps {
                 echo '🧪 Running Jest tests...'
                 sh 'npm test'
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build & Push') {
             steps {
                 echo '🐳 Building Docker image...'
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
-            }
-        }
 
-        stage('Push to Docker Hub') {
-            steps {
-                echo '🚀 Pushing to Docker Hub...'
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
@@ -49,6 +42,8 @@ pipeline {
                 )]) {
                     sh """
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                         docker push ${IMAGE_NAME}:latest
                         docker logout
