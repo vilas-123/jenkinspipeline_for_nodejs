@@ -35,10 +35,12 @@ pipeline {
 
         stage('Docker Build') {
             steps {
+                dir('nodejs') {
                 echo '🐳 Building Docker image...'
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
+        }
         }
 
         stage('Push to Docker Hub') {
