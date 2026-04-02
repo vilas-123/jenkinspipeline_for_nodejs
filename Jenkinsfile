@@ -18,16 +18,19 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing npm packages...'
-                sh 'npm install'
+                dir('nodejs') {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
+                dir('nodejs') {
                 echo '🧪 Running Jest tests...'
                 sh 'npm test || true'
             }
+        }
         }
 
         stage('Docker Build') {
