@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nodejs-mongo-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vilas-123/jenkinspipeline_for_nodejs.git
+    targetRevision: main
+    path: nodejs/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: myapp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
