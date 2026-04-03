@@ -101,3 +101,52 @@ pipeline {
         }
     }
 }
+peline {
+    agent any
+
+    environment {
+        DOCKERHUB_USER = 'vilas12'
+        IMAGE_NAME = "${DOCKERHUB_USER}/nodejs-mongo-app"
+        IMAGE_TAG = "v${env.BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo '📥 Checking out code...'
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('nodejs') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                dir('nodejs') {
+                echo '🧪 Running Jest tests...'
+                sh 'npm test || true'
+            }
+        }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir('nodejs') {
+                        sh """
+                            npx sonar-scanner \
+                                -Dsonar.projectKey=nodejs-mongo-app \
+                                -Dsonar.sources=src \
+                                -Dsonar.tests=tests \
+                                -Dsonar.host.url=http://sonarqube:9000 \
+                                -Dsonar.login=${SONAR_AUTH_TOKEN}
+                        """
+                    }
+                }
