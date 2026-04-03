@@ -33,6 +33,31 @@ pipeline {
         }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir('nodejs') {
+                        sh """
+                            npx sonar-scanner \
+                                -Dsonar.projectKey=nodejs-mongo-app \
+                                -Dsonar.sources=src \
+                                -Dsonar.tests=tests \
+                                -Dsonar.host.url=http://sonarqube:9000 \
+                                -Dsonar.login=${SONAR_AUTH_TOKEN}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 dir('nodejs') {
